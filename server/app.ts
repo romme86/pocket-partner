@@ -677,7 +677,7 @@ export function createApp(auth: RequestHandler = authenticate) {
     res.json({ ok: true });
   });
   api.use((_req, res) => res.status(404).json({ error: 'This action is not available.' }));
-  app.get(config.base, (_req, res) => res.redirect(308, config.base + '/'));
+  app.get(new RegExp('^' + config.base + '$'), (_req, res) => res.redirect(308, config.base + '/'));
   app.use(
     config.base,
     express.static(resolve('dist'), {

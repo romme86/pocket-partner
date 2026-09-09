@@ -39,6 +39,14 @@ const app = createApp(async (req, res, next) => {
   req.identity = { uid, email: uid + '@example.invalid', name: uid, authTime: Date.now() / 1000 };
   next();
 });
+test('The deployment prefix redirects once without looping on the app URL', async () => {
+  const bare = await request(app).get('/pocket-partner');
+  assert.equal(bare.status, 308);
+  assert.equal(bare.headers.location, '/pocket-partner/');
+  const appUrl = await request(app).get('/pocket-partner/');
+  assert.ok(![301, 302, 303, 307, 308].includes(appUrl.status));
+  assert.equal(appUrl.headers.location, undefined);
+});
 const as = (uid: string) => ({
   get: (url: string) =>
     request(app)
