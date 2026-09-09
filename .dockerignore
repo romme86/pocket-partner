@@ -1,0 +1,12 @@
+**
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.server.json
+!vite.config.ts
+!index.html
+!client/**
+!public/**
+!server/**
+!Dockerfile
+!scripts/build-offline.mjs

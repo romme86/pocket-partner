@@ -1,0 +1,26 @@
+# Local infrastructure credentials and SSH state. Never commit this directory.
+/.private/
+
+# Application secrets (commit only placeholder examples).
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+
+# Local operating system files.
+.DS_Store
+
+# Generated artifacts, local experiments and all private user material.
+node_modules/
+dist/
+build/
+outputs/
+data/
+coverage/
+*.log
+*firebase-adminsdk*.json
+*service-account*.json
+firebase-admin.json
+test-results/

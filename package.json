@@ -1,0 +1,52 @@
+{
+  "name": "pocket-partner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A mobile rehearsal partner, built as a group exercise for the UNIL\u2013EPFL AI Product Management course.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4173",
+    "dev:server": "tsx watch server/index.ts",
+    "build": "tsc --noEmit && vite build && node scripts/build-offline.mjs && tsc -p tsconfig.server.json && cp server/schema.sql build/server/schema.sql",
+    "start": "node build/server/index.js",
+    "worker": "node build/server/worker.js",
+    "migrate": "tsx server/migrate.ts",
+    "test": "tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write client server tests scripts vite.config.ts"
+  },
+  "dependencies": {
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "express-rate-limit": "8.7.0",
+    "firebase": "12.18.0",
+    "firebase-admin": "14.3.0",
+    "helmet": "8.3.0",
+    "multer": "2.3.0",
+    "pg": "8.23.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/multer": "2.2.0",
+    "@types/node": "26.5.0",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@types/supertest": "7.2.1",
+    "@vitejs/plugin-react": "6.1.1",
+    "prettier": "3.9.6",
+    "supertest": "7.2.2",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2",
+    "vite": "8.2.2"
+  },
+  "overrides": {
+    "uuid": "11.1.1"
+  }
+}

@@ -1,0 +1,86 @@
+name: pocket-partner
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pocket
+      POSTGRES_USER: pocket
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+    volumes:
+      - database:/var/lib/postgresql/data
+    networks: [private]
+    mem_limit: 256m
+    cpus: 0.35
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U pocket -d pocket']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    logging:
+      options: {max-size: 10m, max-file: '3'}
+  app:
+    image: pocket-partner:${IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    environment: &app-environment
+      NODE_ENV: production
+      PORT: '4174'
+      APP_ORIGIN: ${APP_ORIGIN:?set APP_ORIGIN}
+      DATABASE_URL: postgres://pocket:${DB_PASSWORD}@db:5432/pocket
+      DATA_DIR: /app/data
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase-admin.json
+      FIREBASE_WEB_CONFIG_FILE: /run/secrets/firebase-web.json
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      AI_MONTHLY_CHARACTERS: ${AI_MONTHLY_CHARACTERS:-10000}
+      AI_GROUP_MONTHLY_CHARACTERS: ${AI_GROUP_MONTHLY_CHARACTERS:-3000}
+      GROUP_STORAGE_BYTES: ${GROUP_STORAGE_BYTES:-104857600}
+      GLOBAL_STORAGE_BYTES: ${GLOBAL_STORAGE_BYTES:-1073741824}
+    volumes: &app-volumes
+      - files:/app/data
+      - ./secrets:/run/secrets:ro
+    depends_on:
+      db: {condition: service_healthy}
+    networks:
+      private:
+      proxy:
+        aliases: [pocket-partner-web]
+    mem_limit: 512m
+    cpus: 0.65
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:4174/pocket-partner/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    logging:
+      options: {max-size: 10m, max-file: '3'}
+  worker:
+    image: pocket-partner:${IMAGE_TAG:-local}
+    command: [node, build/server/worker.js]
+    restart: unless-stopped
+    init: true
+    environment: *app-environment
+    volumes: *app-volumes
+    depends_on:
+      app: {condition: service_healthy}
+    networks: [private]
+    mem_limit: 512m
+    cpus: 0.5
+    stop_grace_period: 75s
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    logging:
+      options: {max-size: 10m, max-file: '3'}
+networks:
+  private:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-app-elbana_backend}
+volumes:
+  database:
+  files:
