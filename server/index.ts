@@ -8,4 +8,6 @@ await db.query('SELECT 1');
 const server = createApp().listen(config.port, '0.0.0.0', () =>
   console.log(`Pocket Partner listening on ${config.port}${config.base}/`),
 );
+server.requestTimeout = 120000;
+server.headersTimeout = 30000;
 process.on('SIGTERM', () => server.close(() => db.end().then(() => process.exit(0))));

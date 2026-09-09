@@ -56,7 +56,7 @@ Firebase identifies the user. The VPS—not Firebase client configuration—deci
 
 The initial deployment reserves at most **10,000 AI text characters per UTC calendar month globally**, and **3,000 per group**. Reservations are atomic across simultaneous requests. Failed or interrupted provider calls keep their reservation because a timeout does not establish whether the provider charged. Existing AI clips are reused; regeneration is explicit. Limits apply only to calls from this app, not other uses of the same ElevenLabs account.
 
-Other initial limits: 100 MB stored per group, 1 GB globally, 10 MB per upload, 3 minutes per recording, 100 queued lines per generation request, 2,000 characters per generated line, 3,000 imported lines, 50 scripts per group, 30 members per group and 10 owned groups per user. The app, worker and database have container memory/CPU limits. These are configurable application safeguards, not a currency-denominated provider billing cap. ElevenLabs usage remains separate from the Firebase free plan.
+Other initial limits: 100 MB stored per group, 1 GB globally, 10 MB per upload, 3 minutes per recording, 2 simultaneous upload conversions, 100 queued lines per generation request, 2,000 characters per generated line, 3,000 imported lines, 50 scripts per group, 30 members per group and 10 owned groups per user. New writes pause if the server has less than 2 GB of available disk space; deletion remains available. The app, worker and database have container memory/CPU limits. These are configurable application safeguards, not a currency-denominated provider billing cap. ElevenLabs usage remains separate from the Firebase free plan.
 
 ## Local development
 

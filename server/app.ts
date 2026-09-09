@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 import multer from 'multer';
 import { z, ZodError } from 'zod';
 import { randomUUID, randomBytes, createHash } from 'node:crypto';
-import { readFile, unlink, stat } from 'node:fs/promises';
+import { readFile, unlink, stat, statfs } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { config, webConfig } from './config.js';
 import { db, transaction } from './db.js';
@@ -105,6 +105,18 @@ export function createApp(auth: RequestHandler = authenticate) {
     next();
   });
   api.use(auth);
+  api.use(async (req, res, next) => {
+    if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+      const disk = await statfs(config.dataDir);
+      if (disk.bavail * disk.bsize < 2 * 1024 * 1024 * 1024) {
+        res
+          .status(503)
+          .json({ error: 'Server storage is low. Please contact the app administrator.' });
+        return;
+      }
+    }
+    next();
+  });
   api.use(
     rateLimit({
       windowMs: 60000,
@@ -261,6 +273,30 @@ export function createApp(auth: RequestHandler = authenticate) {
     });
     res.json({ groupId });
   });
+  let activeUploads = 0;
+  const uploadSlot: RequestHandler = (_req, res, next) => {
+    if (activeUploads >= 2) {
+      res
+        .status(503)
+        .json({ error: 'Two uploads are being prepared. Please try again in a moment.' });
+      return;
+    }
+    activeUploads++;
+    let released = false;
+    const release = () => {
+      if (!released) {
+        released = true;
+        activeUploads--;
+      }
+    };
+    res.once('finish', release);
+    // A disconnected upload may still be finishing a bounded conversion.
+    res.once('close', () => {
+      const timer = setTimeout(release, 65000);
+      timer.unref();
+    });
+    next();
+  };
   const uploadLimiter = rateLimit({
     windowMs: 60000,
     limit: 10,
@@ -272,6 +308,7 @@ export function createApp(auth: RequestHandler = authenticate) {
     '/groups/:groupId/import-preview',
     editor,
     uploadLimiter,
+    uploadSlot,
     upload.single('file'),
     async (req, res) => {
       let text = String(req.body.text || '');
@@ -561,6 +598,7 @@ export function createApp(auth: RequestHandler = authenticate) {
         next(e);
       }
     },
+    uploadSlot,
     upload.single('file'),
     async (req, res) => {
       if (!req.file) throw new AppError(400, 'Choose a recording.');

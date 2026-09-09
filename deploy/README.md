@@ -24,7 +24,7 @@ Build a new tagged image and keep the previous image available. Apply additive m
 
 ## Backups
 
-`backup.sh` briefly stops the app and worker to capture a consistent database dump and files archive, then restarts them. It writes private snapshots under `/var/backups/pocket-partner` and retains seven days. Plan its daily run outside rehearsals. Copy snapshots to another machine or backup provider for disaster recovery; a backup on the same VPS is not protection against loss of that VPS.
+`backup.sh` briefly stops the app and worker to capture a consistent database dump and files archive, then restarts them. It writes private snapshots under `/var/backups/pocket-partner` and retains three days. The supplied systemd service and timer schedule it daily at 03:30 UTC; install them in `/etc/systemd/system/`, reload systemd and enable `pocket-partner-backup.timer`. Adjust the schedule outside your rehearsal hours. Copy snapshots to another machine or backup provider for disaster recovery; a backup on the same VPS is not protection against loss of that VPS.
 
 To restore: stop the app and worker; restore the database dump into an empty `pocket` database using `pg_restore -U pocket -d pocket`; restore `files.tar.gz` into the `pocket-partner_files` volume; then restart and verify group/file access. Restore credentials from their separate private storage. Test restores before relying on a backup policy.
 
