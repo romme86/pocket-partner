@@ -10,3 +10,5 @@
 !server/**
 !Dockerfile
 !scripts/build-offline.mjs
+**/._*
+**/.DS_Store

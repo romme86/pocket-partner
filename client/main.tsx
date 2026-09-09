@@ -29,6 +29,7 @@ async function boot() {
   });
   function Root() {
     const [user, setAuthUser] = React.useState<User | null | undefined>();
+    const [registering, setRegistering] = React.useState(false);
     React.useEffect(
       () =>
         onAuthStateChanged(auth, (u) => {
@@ -39,7 +40,11 @@ async function boot() {
     );
     if (user === undefined)
       return <div className="boot-message">Opening your rehearsal space…</div>;
-    return user ? <App auth={auth} user={user} /> : <Login auth={auth} />;
+    return user && !registering ? (
+      <App auth={auth} user={user} />
+    ) : (
+      <Login auth={auth} onRegistering={setRegistering} />
+    );
   }
   createRoot(document.getElementById('root')!).render(<Root />);
   if ('serviceWorker' in navigator && import.meta.env.PROD)

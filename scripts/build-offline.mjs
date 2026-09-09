@@ -4,7 +4,7 @@ const base = '/pocket-partner/';
 const files = [base, base + 'icon.svg'];
 for (const directory of ['assets', 'fonts'])
   for (const file of await readdir('dist/' + directory))
-    if (!file.endsWith('.txt')) files.push(base + directory + '/' + file);
+    if (!file.startsWith('.') && !file.endsWith('.txt')) files.push(base + directory + '/' + file);
 const version = createHash('sha256')
   .update(await readFile('dist/index.html'))
   .digest('hex')

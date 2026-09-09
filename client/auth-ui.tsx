@@ -20,7 +20,13 @@ export const authMessage = (e: unknown) => {
           ? 'Connect to the internet to sign in.'
           : 'Check your email and password, then try again.';
 };
-export function Login({ auth }: { auth: Auth }) {
+export function Login({
+  auth,
+  onRegistering,
+}: {
+  auth: Auth;
+  onRegistering: (value: boolean) => void;
+}) {
   const [mode, setMode] = useState<'login' | 'register' | 'reset'>('login'),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
@@ -37,16 +43,19 @@ export function Login({ auth }: { auth: Auth }) {
         await sendPasswordResetEmail(auth, email);
         setNotice('If an account exists, a password-reset email is on its way.');
       } else if (mode === 'register') {
+        onRegistering(true);
         const result = await createUserWithEmailAndPassword(
           auth,
           email,
           String(data.get('password')),
         );
         await updateProfile(result.user, { displayName: String(data.get('name')) });
+        await result.user.getIdToken(true);
       } else await signInWithEmailAndPassword(auth, email, String(data.get('password')));
     } catch (e) {
       setError(authMessage(e));
     } finally {
+      onRegistering(false);
       setBusy(false);
     }
   }

@@ -11,6 +11,7 @@
 
 # Local operating system files.
 .DS_Store
+._*
 
 # Generated artifacts, local experiments and all private user material.
 node_modules/
